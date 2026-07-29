@@ -1,0 +1,35 @@
+namespace DirectoryIndexer;
+
+// Based on https://github.com/dotnet/runtime/blob/c8acea22626efab11c13778c028975acdc34678f/src/libraries/Microsoft.Extensions.FileProviders.Physical/src/PhysicalFileInfo.cs
+public class LinkAwareFileInfo
+{
+    private readonly FileInfo _info;
+    private readonly FileInfo _resolvedInfo;
+
+    public LinkAwareFileInfo(FileInfo info)
+    {
+        _info = info;
+
+        try
+        {
+            var targetInfo = _info.ResolveLinkTarget(true) as FileInfo;
+            _resolvedInfo = targetInfo ?? _info;
+        }
+        catch(IOException)
+        {
+            _resolvedInfo = _info;
+        }
+    }
+
+    public bool Exists => _resolvedInfo.Exists;
+
+    public long Length => _resolvedInfo.Length;
+
+    public string PhysicalPath => _info.FullName;
+
+    public string Name => _info.Name;
+
+    public DateTimeOffset LastModified => _resolvedInfo.LastWriteTimeUtc;
+
+    public bool IsDirectory => false;
+}

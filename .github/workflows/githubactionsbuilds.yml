@@ -1,0 +1,177 @@
+name: GitHubActionsBuilds
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  extract-version:
+    runs-on: windows-latest
+    outputs:
+      APP_VERSION: ${{ steps.extract-app-version.outputs.APP_VERSION }}
+    steps:
+    - run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $env:GITHUB_ENV
+
+    - uses: actions/checkout@v6
+    
+    - name: Extract App Version
+      id: extract-app-version
+      run: $version = (Select-Xml -Path DirectoryIndexer.csproj -XPath '//Version[1]/text()[1]').Node.InnerText; "APP_VERSION=$version" >> "$env:GITHUB_OUTPUT"
+
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $env:GITHUB_ENV
+
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - uses: actions/cache@v5
+      with:
+        path: ~/.nuget/packages
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
+
+    - name: Build
+      run: dotnet publish DirectoryIndexer.csproj -r linux-x64
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: build-linux-x64
+        path: |
+          bin/Release/linux-x64/publish/*
+
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $env:GITHUB_ENV
+
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - uses: actions/cache@v5
+      with:
+        path: ~/.nuget/packages
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
+
+    - name: Build
+      run: dotnet publish DirectoryIndexer.csproj -r linux-arm64
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: build-linux-arm64
+        path: |
+          bin/Release/linux-arm64/publish/*
+
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+    - run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $env:GITHUB_ENV
+
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - uses: actions/cache@v5
+      with:
+        path: ~/.nuget/packages
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
+
+    - name: Build
+      run: dotnet publish DirectoryIndexer.csproj -r win-x64
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: build-windows-x64
+        path: |
+          bin/Release/win-x64/publish/*
+
+  build-windows-arm64:
+    runs-on: windows-11-arm
+    steps:
+    - run: echo "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true" >> $env:GITHUB_ENV
+
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - uses: actions/cache@v5
+      with:
+        path: ~/.nuget/packages
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
+
+    - name: Build
+      run: dotnet publish DirectoryIndexer.csproj -r win-arm64
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: build-windows-arm64
+        path: |
+          bin/Release/win-arm64/publish/*
+
+  release-github:
+    #if: github.event.head_commit.message == 'Bump version'
+    needs: [
+      extract-version,
+      build-linux-x64,
+      build-linux-arm64,
+      build-windows-x64,
+      build-windows-arm64
+    ]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v8
+
+    - name: Append platform specifiers
+      run: |
+        (Get-ChildItem -File build-linux-x64) | Rename-Item -NewName {"linux-x64-" + $_.Name}
+        (Get-ChildItem -File build-linux-arm64) | Rename-Item -NewName {"linux-arm64-" + $_.Name}
+        (Get-ChildItem -File build-windows-x64) | Rename-Item -NewName {"windows-x64-" + $_.Name}
+        (Get-ChildItem -File build-windows-arm64) | Rename-Item -NewName {"windows-arm64-" + $_.Name}
+
+    - name: Release
+      env:
+        APP_VERSION: ${{needs.extract-version.outputs.APP_VERSION}}
+      uses: softprops/action-gh-release@v3
+      with:
+        prerelease: true
+        tag_name: v${{ env.APP_VERSION }}
+        files: |
+          build-linux-x64/*
+          build-linux-arm64/*
+          build-windows-x64/*
+          build-windows-arm64/*

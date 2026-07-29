@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DirectoryIndexer": {
+      "commandName": "Project",
+      "commandLineArgs": "-r C:\\Repos\\HugeMazes"
+    }
+  }
+}
