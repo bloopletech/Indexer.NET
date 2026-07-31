@@ -70,7 +70,7 @@ public class Indexer(DirectoryResult directory, DirectorySort sort, string url)
         <tr>
             <td class="name"><a href="{UrlUtility.EncodeUrlPath(info.Name + "/")}">📂 <span>{info.Name}</span></a></td>
             <td class="size">—</td>
-            <td class="modified hideable"><time datetime="{info.LastModified:O}">{info.LastModified:d MMM yyy h:m:s tt}</time></td>
+            <td class="modified hideable"><time datetime="{info.LastModified:O}">{info.LastModified:d MMM yyy h:mm:ss tt}</time></td>
         </tr>
         """;
 
@@ -78,7 +78,7 @@ public class Indexer(DirectoryResult directory, DirectorySort sort, string url)
         <tr>
             <td class="name"><a href="{UrlUtility.EncodeUrlPath(info.Name)}">📄 <span>{info.Name}</span></a></td>
             <td class="size">{PrettySize.Bytes(info.Length)}</td>
-            <td class="modified hideable"><time datetime="{info.LastModified:O}">{info.LastModified:d MMM yyy h:m:s tt}</time></td>
+            <td class="modified hideable"><time datetime="{info.LastModified:O}">{info.LastModified:d MMM yyy h:mm:ss tt}</time></td>
         </tr>
         """;
 
