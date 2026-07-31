@@ -9,16 +9,28 @@ var includesOption = new Option<string[]>("--filter", "-f")
     DefaultValueFactory = (_) => ["**"]
 };
 var excludesOption = new Option<string[]>("--ignore", "-i");
+var sortOption = new Option<string>("--sort", "-s");
+sortOption.Validators.Add(result =>
+{
+    var value = result.Tokens.Single().Value.ToLowerInvariant();
+    string[] validValues = ["name", "mtime"];
+
+    if(!validValues.Contains(value))
+    {
+        result.AddError($"Argument '{value}' not recognized. Must be one of: {string.Join(", ", validValues)}");
+    }
+});
 var recursiveOption = new Option<bool>("--recursive", "-r");
 var rootArgument = new Argument<string>("root")
 {
-    Arity = ArgumentArity.ExactlyOne
-    //DefaultValueFactory = (_) => Directory.GetCurrentDirectory()
+    //Arity = ArgumentArity.ExactlyOne
+    DefaultValueFactory = (_) => Directory.GetCurrentDirectory()
 };
 
 var rootCommand = new RootCommand();
 rootCommand.Options.Add(includesOption);
 rootCommand.Options.Add(excludesOption);
+rootCommand.Options.Add(sortOption);
 rootCommand.Options.Add(recursiveOption);
 rootCommand.Arguments.Add(rootArgument);
 
@@ -29,15 +41,20 @@ if(parseResult.Errors.Count > 0)
     Environment.Exit(1);
 }
 
-var root = Path.GetFullPath(parseResult.GetValue(rootArgument) ?? Directory.GetCurrentDirectory());
+var root = Path.GetFullPath(parseResult.GetRequiredValue(rootArgument));
 
 var matcher = new Matcher();
-
-var includes = parseResult.GetValue(includesOption);
-if(includes != null) matcher.AddIncludePatterns(includes);
+matcher.AddIncludePatterns(parseResult.GetRequiredValue(includesOption));
 
 var excludes = parseResult.GetValue(excludesOption);
 if(excludes != null) matcher.AddExcludePatterns(excludes);
+
+var sort = parseResult.GetValue(sortOption) switch
+{
+    "name" => DirectorySort.Name,
+    "mtime" => DirectorySort.Mtime,
+    _ => DirectorySort.Name
+};
 
 var recursive = parseResult.GetValue(recursiveOption);
 
@@ -48,7 +65,7 @@ void Index(string dir)
     var result = factory.For(dir);
     var url = $"/{dir.Replace(Path.DirectorySeparatorChar, '/')}";
 
-    new Indexer(result, url).Create();
+    new Indexer(result, sort, url).Create();
 
     if(recursive)
     {

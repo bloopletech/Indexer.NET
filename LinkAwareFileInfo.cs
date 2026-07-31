@@ -1,7 +1,7 @@
 namespace DirectoryIndexer;
 
 // Based on https://github.com/dotnet/runtime/blob/c8acea22626efab11c13778c028975acdc34678f/src/libraries/Microsoft.Extensions.FileProviders.Physical/src/PhysicalFileInfo.cs
-public class LinkAwareFileInfo
+public class LinkAwareFileInfo : IFileInfo
 {
     private readonly FileInfo _info;
     private readonly FileInfo _resolvedInfo;

@@ -2,7 +2,7 @@ using NeoSmart.PrettySize;
 
 namespace DirectoryIndexer;
 
-public class Indexer(DirectoryResult directory, string url)
+public class Indexer(DirectoryResult directory, DirectorySort sort, string url)
 {
     private const string IndexFileName = "index.html";
 
@@ -44,14 +44,19 @@ public class Indexer(DirectoryResult directory, string url)
 
     private IEnumerable<string> RenderOthers() => url == "/" ? [] : [RenderParent()];
 
-    private IEnumerable<string> RenderDirectories() => directory.Directories
-        .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase)
-        .Select(RenderDirectory);
+    private IEnumerable<string> RenderDirectories() => Sort(directory.Directories).Select(RenderDirectory);
 
-    private IEnumerable<string> RenderFiles() => directory.Files
-        .OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase)
-        .Where(f => f.Name != IndexFileName)
-        .Select(RenderFile);
+    private IEnumerable<string> RenderFiles() => Sort(directory.Files).Where(f => f.Name != IndexFileName).Select(RenderFile);
+
+    private IEnumerable<T> Sort<T>(IEnumerable<T> items) where T : IFileInfo
+    {
+        switch(sort)
+        {
+            case DirectorySort.Name: return items.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase);
+            case DirectorySort.Mtime: return items.OrderByDescending(f => f.LastModified);
+            default: return items;
+        }
+    }
 
     private static string RenderParent() => $"""
         <tr>
