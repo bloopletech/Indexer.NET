@@ -50,12 +50,14 @@ public class Indexer(DirectoryResult directory, DirectorySort sort, string url)
 
     private IEnumerable<T> Sort<T>(IEnumerable<T> items) where T : IFileInfo
     {
-        switch(sort)
+        var ordered = sort.Method switch
         {
-            case DirectorySort.Name: return items.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase);
-            case DirectorySort.Mtime: return items.OrderByDescending(f => f.LastModified);
-            default: return items;
-        }
+            DirectorySort.SortMethod.Name => items.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase),
+            DirectorySort.SortMethod.Mtime => items.OrderBy(f => f.LastModified),
+            _ => items,
+        };
+
+        return sort.IsReverse ? ordered.Reverse() : ordered;
     }
 
     private static string RenderParent() => $"""

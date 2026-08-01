@@ -1,7 +1,10 @@
 namespace DirectoryIndexer;
 
-public enum DirectorySort
+public readonly record struct DirectorySort(DirectorySort.SortMethod Method, bool IsReverse)
 {
-    Name,
-    Mtime
+    public enum SortMethod
+    {
+        Name,
+        Mtime
+    }
 }

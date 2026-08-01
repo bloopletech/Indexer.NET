@@ -2,7 +2,7 @@
   "profiles": {
     "DirectoryIndexer": {
       "commandName": "Project",
-      "commandLineArgs": "-r -s mtime"
+      "commandLineArgs": "-r -s mtime -sr"
     }
   }
 }

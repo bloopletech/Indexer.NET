@@ -9,6 +9,7 @@
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
 
+    <InvariantGlobalization>true</InvariantGlobalization>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
