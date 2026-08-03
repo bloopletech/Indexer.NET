@@ -1,6 +1,6 @@
 using Microsoft.Extensions.FileSystemGlobbing;
 
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public class DirectoryFactory(string rootDir, Matcher matcher)
 {

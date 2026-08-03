@@ -1,4 +1,4 @@
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public readonly record struct DirectorySort(DirectorySort.SortMethod Method, bool IsReverse)
 {

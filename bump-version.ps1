@@ -8,7 +8,7 @@ if($gitStatus -ne "")
   exit 1
 }
 
-$servelVersionNode = (Select-Xml -Path DirectoryIndexer.csproj -XPath '//Version[1]/text()[1]').Node
+$servelVersionNode = (Select-Xml -Path Indexer.NET.csproj -XPath '//Version[1]/text()[1]').Node
 
 $existingVersion = [Version]::new($servelVersionNode.InnerText)
 $newVersion = [Version]::new($existingVersion.Major, $existingVersion.Minor + 1, $existingVersion.Build)
@@ -18,7 +18,7 @@ $servelVersionNode.InnerText = $newVersion.ToString(3)
 $xmlSettings = New-Object System.Xml.XmlWriterSettings
 $xmlSettings.OmitXmlDeclaration = $true
 
-$xmlWriter = [System.XML.XmlWriter]::Create((Join-Path -Path $PSScriptRoot -ChildPath DirectoryIndexer.csproj), $xmlSettings)
+$xmlWriter = [System.XML.XmlWriter]::Create((Join-Path -Path $PSScriptRoot -ChildPath Indexer.NET.csproj), $xmlSettings)
 $servelVersionNode.OwnerDocument.Save($xmlWriter)
 $xmlWriter.Close()
 

@@ -18,7 +18,7 @@ jobs:
     
     - name: Extract App Version
       id: extract-app-version
-      run: $version = (Select-Xml -Path DirectoryIndexer.csproj -XPath '//Version[1]/text()[1]').Node.InnerText; "APP_VERSION=$version" >> "$env:GITHUB_OUTPUT"
+      run: $version = (Select-Xml -Path Indexer.NET.csproj -XPath '//Version[1]/text()[1]').Node.InnerText; "APP_VERSION=$version" >> "$env:GITHUB_OUTPUT"
 
   build-linux-x64:
     runs-on: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
           ${{ runner.os }}-nuget
 
     - name: Build
-      run: dotnet publish DirectoryIndexer.csproj -r linux-x64
+      run: dotnet publish Indexer.NET.csproj -r linux-x64
 
     - name: Upload
       uses: actions/upload-artifact@v7
@@ -71,7 +71,7 @@ jobs:
           ${{ runner.os }}-nuget
 
     - name: Build
-      run: dotnet publish DirectoryIndexer.csproj -r linux-arm64
+      run: dotnet publish Indexer.NET.csproj -r linux-arm64
 
     - name: Upload
       uses: actions/upload-artifact@v7
@@ -101,7 +101,7 @@ jobs:
           ${{ runner.os }}-nuget
 
     - name: Build
-      run: dotnet publish DirectoryIndexer.csproj -r win-x64
+      run: dotnet publish Indexer.NET.csproj -r win-x64
 
     - name: Upload
       uses: actions/upload-artifact@v7
@@ -131,7 +131,7 @@ jobs:
           ${{ runner.os }}-nuget
 
     - name: Build
-      run: dotnet publish DirectoryIndexer.csproj -r win-arm64
+      run: dotnet publish Indexer.NET.csproj -r win-arm64
 
     - name: Upload
       uses: actions/upload-artifact@v7

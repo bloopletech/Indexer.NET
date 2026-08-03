@@ -6,21 +6,6 @@
 version: 2
 updates:
 
-  # Maintain dependencies for npm
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "daily"
-      time: "01:00"
-      timezone: "Europe/Amsterdam"
-    groups:
-      aspnetcore-identity:
-        patterns:
-        - "Microsoft.AspNetCore.Identity.*"
-        update-types:
-        - "minor"
-        - "patch"
-
   # Maintain dependencies for NuGet
   - package-ecosystem: "nuget"
     directory: "/"

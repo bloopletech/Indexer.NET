@@ -1,8 +1,8 @@
 using NeoSmart.PrettySize;
 
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
-public class Indexer(DirectoryResult directory, DirectorySort sort, string url)
+public class DirectoryIndexer(DirectoryResult directory, DirectorySort sort, string url)
 {
     private const string IndexFileName = "index.html";
 
