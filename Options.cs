@@ -1,12 +1,12 @@
 using System.CommandLine;
-using System.CommandLine.Parsing;
 
 namespace Indexer.NET;
 
 public readonly record struct Options(
     string[] Includes,
     string[] Excludes,
-    DirectorySort Sort,
+    SortMethod Sort,
+    bool SortReverse,
     bool Recursive,
     string Root)
 {
@@ -17,17 +17,14 @@ public readonly record struct Options(
             DefaultValueFactory = (_) => ["**"]
         };
         var excludesOption = new Option<string[]>("--ignore", "-i");
-        var sortMethodOption = new Option<string>("--sort", "-s")
+        var sortMethodOption = new Option<SortMethod>("--sort", "-s")
         {
-            Required = false,
-            DefaultValueFactory = (_) => "name"
+            DefaultValueFactory = (_) => SortMethod.Name
         };
-        sortMethodOption.Validators.Add(ValdiateEnumOption<DirectorySort.SortMethod>);
         var sortReverseOption = new Option<bool>("--sort-reverse", "-sr");
         var recursiveOption = new Option<bool>("--recursive", "-r");
         var rootArgument = new Argument<string>("root")
         {
-            //Arity = ArgumentArity.ExactlyOne
             DefaultValueFactory = (_) => Directory.GetCurrentDirectory()
         };
 
@@ -46,31 +43,13 @@ public readonly record struct Options(
             Environment.Exit(1);
         }
 
-        var sortMethod = ParseEnum<DirectorySort.SortMethod>(parseResult.GetRequiredValue(sortMethodOption));
-        var sortReverse = parseResult.GetValue(sortReverseOption);
-        var sort = new DirectorySort(sortMethod, sortReverse);
-
         return new(
             parseResult.GetRequiredValue(includesOption),
             parseResult.GetValue(excludesOption) ?? [],
-            sort,
+            parseResult.GetRequiredValue(sortMethodOption),
+            parseResult.GetValue(sortReverseOption),
             parseResult.GetValue(recursiveOption),
-            Path.GetFullPath(parseResult.GetRequiredValue(rootArgument))
+            parseResult.GetRequiredValue(rootArgument)
         );
     }
-
-    private static void ValdiateEnumOption<T>(OptionResult result) where T : struct, Enum
-    {
-        if(result.Implicit) return;
-
-        var value = result.Tokens.Single().Value.ToLowerInvariant();
-        var validValues = Enum.GetNames<T>().Select(s => s.ToLowerInvariant());
-
-        if(!validValues.Contains(value))
-        {
-            result.AddError($"Argument '{value}' not recognized. Must be one of: {string.Join(", ", validValues)}");
-        }
-    }
-
-    private static T ParseEnum<T>(string value) where T : struct, Enum => Enum.Parse<T>(value, true);
 }

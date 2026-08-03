@@ -5,18 +5,31 @@ using Microsoft.Extensions.FileSystemGlobbing;
 
 var options = Options.Parse(args);
 
+var root = Path.GetFullPath(options.Root);
+
 var matcher = new Matcher();
 matcher.AddIncludePatterns(options.Includes);
 matcher.AddExcludePatterns(options.Excludes);
 
-var factory = new DirectoryFactory(options.Root, matcher);
+var sort = new Sort(options.Sort, options.SortReverse);
+
+var factory = new DirectoryFactory(options.Root, matcher, sort);
 
 void Index(string dir)
 {
-    var result = factory.For(dir);
-    var url = $"/{dir.Replace(Path.DirectorySeparatorChar, '/')}";
+    var result = DirectoryResult.Empty;
 
-    new DirectoryIndexer(result, options.Sort, url).Create();
+    try
+    {
+        result = factory.For(dir);
+        var url = $"/{dir.Replace(Path.DirectorySeparatorChar, '/')}";
+
+        new DirectoryIndexer(result, url).Create();
+    }
+    catch(Exception ex)
+    {
+        Console.WriteLine($"There was an error while indexing {dir}, skipping: {ex}");
+    }
 
     if(options.Recursive)
     {
@@ -25,8 +38,6 @@ void Index(string dir)
 }
 
 Index("");
-
-
 
 //public class Indexer(string rootDir, Matcher matcher, bool recursive)
 //{

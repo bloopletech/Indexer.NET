@@ -2,7 +2,7 @@ using NeoSmart.PrettySize;
 
 namespace Indexer.NET;
 
-public class DirectoryIndexer(DirectoryResult directory, DirectorySort sort, string url)
+public class DirectoryIndexer(DirectoryResult directory, string url)
 {
     private const string IndexFileName = "index.html";
 
@@ -44,21 +44,9 @@ public class DirectoryIndexer(DirectoryResult directory, DirectorySort sort, str
 
     private IEnumerable<string> RenderOthers() => url == "/" ? [] : [RenderParent()];
 
-    private IEnumerable<string> RenderDirectories() => Sort(directory.Directories).Select(RenderDirectory);
+    private IEnumerable<string> RenderDirectories() => directory.Directories.Select(RenderDirectory);
 
-    private IEnumerable<string> RenderFiles() => Sort(directory.Files).Where(f => f.Name != IndexFileName).Select(RenderFile);
-
-    private IEnumerable<T> Sort<T>(IEnumerable<T> items) where T : IFileInfo
-    {
-        var ordered = sort.Method switch
-        {
-            DirectorySort.SortMethod.Name => items.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase),
-            DirectorySort.SortMethod.Mtime => items.OrderBy(f => f.LastModified),
-            _ => items,
-        };
-
-        return sort.IsReverse ? ordered.Reverse() : ordered;
-    }
+    private IEnumerable<string> RenderFiles() => directory.Files.Where(f => f.Name != IndexFileName).Select(RenderFile);
 
     private static string RenderParent() => $"""
         <tr>
@@ -70,19 +58,46 @@ public class DirectoryIndexer(DirectoryResult directory, DirectorySort sort, str
 
     private static string RenderDirectory(LinkAwareDirectoryInfo info) => $"""
         <tr>
-            <td class="name"><a href="{UrlUtility.EncodeUrlPath(info.Name + "/")}">📂 <span>{info.Name}</span></a></td>
+            <td class="name">
+                <a href="{UrlUtility.EncodeUrlPath(info.Name + "/")}">📂 <span>{info.Name}</span></a>
+            </td>
             <td class="size">—</td>
-            <td class="modified hideable"><time datetime="{info.LastModified:O}">{info.LastModified:d MMM yyy h:mm:ss tt}</time></td>
+            <td class="modified hideable">
+                <time datetime="{info.LastModified:O}" title="{info.LastModified:O}">{info.LastModified:d MMM yyy h:mm:ss tt}</time>
+            </td>
         </tr>
         """;
 
     private static string RenderFile(LinkAwareFileInfo info) => $"""
         <tr>
-            <td class="name"><a href="{UrlUtility.EncodeUrlPath(info.Name)}">📄 <span>{info.Name}</span></a></td>
-            <td class="size">{PrettySize.Bytes(info.Length)}</td>
-            <td class="modified hideable"><time datetime="{info.LastModified:O}">{info.LastModified:d MMM yyy h:mm:ss tt}</time></td>
+            <td class="name">
+                <a href="{UrlUtility.EncodeUrlPath(info.Name)}">{RenderIcon(info.Name)} <span>{info.Name}</span></a>
+            </td>
+            <td class="size">
+                <data value="{info.Length}" title="{info.Length} bytes">{PrettySize.Bytes(info.Length)}</span>
+            </td>
+            <td class="modified hideable">
+                <time datetime="{info.LastModified:O}" title="{info.LastModified:O}">{info.LastModified:d MMM yyy h:mm:ss tt}</time>
+            </td>
         </tr>
         """;
+
+    private static string RenderIcon(string name)
+    {
+        var ext = Path.GetExtension(name).TrimStart('.');
+        if(ImageExts.Contains(ext)) return "🖼️";
+        if(VideoExts.Contains(ext)) return "🎞️";
+        if(AudioExts.Contains(ext)) return "🔊";
+        if(DocumentExts.Contains(ext)) return "📝";
+        if(CompressedExts.Contains(ext)) return "📦";
+        return "📄";
+    }
+
+    private static readonly string[] ImageExts = ["jfif", "jpg", "jpeg", "png", "gif", "webp"];
+    private static readonly string[] VideoExts = ["ogg", "ogm", "ogv", "m4v", "mkv", "mp4", "webm", "avi", "wmv"];
+    private static readonly string[] AudioExts = ["aac", "oga", "opus", "m4a", "mka", "mp3", "wav", "flac", "wma"];
+    private static readonly string[] DocumentExts = ["htm", "html", "md", "pdf", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+    private static readonly string[] CompressedExts = ["bz2", "gz", "lz", "lz4", "lzma", "xz", "7z", "rar", "tgz", "txz", "rar", "zip"];
 
     private static readonly string Styles = """
         * {
@@ -95,7 +110,6 @@ public class DirectoryIndexer(DirectoryResult directory, DirectorySort sort, str
         body {
             margin: 0;
             padding: 0;
-            min-height: 100vh;
             font-size: 16px;
             background-color: #fff;
             color: #000;
@@ -144,6 +158,9 @@ public class DirectoryIndexer(DirectoryResult directory, DirectorySort sort, str
         }
         th:last-child, td:last-child {
             padding-right: 0;
+        }
+        td a {
+            display: block;
         }
         td.name {
             overflow-wrap: anywhere;

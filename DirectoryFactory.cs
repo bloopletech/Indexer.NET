@@ -2,17 +2,29 @@ using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace Indexer.NET;
 
-public class DirectoryFactory(string rootDir, Matcher matcher)
+public class DirectoryFactory(string rootDir, Matcher matcher, Sort sort)
 {
     public DirectoryResult For(string dir)
     {
         var info = new DirectoryInfo(Path.Join(rootDir, dir));
 
         var entries = info.EnumerateFileSystemInfos().Where(Filter);
-        var directories = entries.OfType<DirectoryInfo>().Select(d => new LinkAwareDirectoryInfo(d));
-        var files = entries.OfType<FileInfo>().Select(f => new LinkAwareFileInfo(f));
+        var directories = Sort(entries.OfType<DirectoryInfo>()).Select(d => new LinkAwareDirectoryInfo(d));
+        var files = Sort(entries.OfType<FileInfo>()).Select(f => new LinkAwareFileInfo(f));
 
         return new(info.FullName, directories, files);
+    }
+
+    private IEnumerable<T> Sort<T>(IEnumerable<T> items) where T : FileSystemInfo
+    {
+        var ordered = sort.Method switch
+        {
+            SortMethod.Name => items.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase),
+            SortMethod.Mtime => items.OrderBy(f => f.LastWriteTimeUtc),
+            _ => items,
+        };
+
+        return sort.Reverse ? ordered.Reverse() : ordered;
     }
 
     private bool Filter(FileSystemInfo info) => IsMatch(info) && !IsSensitive(info);
