@@ -1,6 +1,6 @@
 // Based on https://github.com/joshbrunty/Indexer/blob/6d8cbfd15d3853b482e6a49f2d875ded9188b721/indexer.py
 
-using DirectoryIndexer;
+using Indexer.NET;
 using Microsoft.Extensions.FileSystemGlobbing;
 
 var options = Options.Parse(args);
@@ -51,7 +51,7 @@ Index("");
 /*
  using Microsoft.Extensions.FileSystemGlobbing;
 
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public class Indexer(string rootDir, Matcher matcher, bool recursive)
 {

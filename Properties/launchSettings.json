@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "DirectoryIndexer": {
+    "Indexer.NET": {
       "commandName": "Project",
       "commandLineArgs": "-r -s mtime -sr"
     }

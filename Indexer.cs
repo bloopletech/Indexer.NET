@@ -1,6 +1,6 @@
 using NeoSmart.PrettySize;
 
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public class Indexer(DirectoryResult directory, DirectorySort sort, string url)
 {

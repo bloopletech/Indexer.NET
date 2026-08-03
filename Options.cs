@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public readonly record struct Options(
     string[] Includes,

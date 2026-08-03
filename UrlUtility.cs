@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public static partial class UrlUtility
 {

@@ -1,4 +1,4 @@
-namespace DirectoryIndexer;
+namespace Indexer.NET;
 
 public readonly record struct DirectoryResult(
     string FullName,
